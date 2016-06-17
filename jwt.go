@@ -22,3 +22,7 @@ func NewJWT(issuer string, ttl int64) *JWT {
 func (jwt *JWT) AddAlgorithm(name string, algorithm Algorithm) {
 	jwt.algorithms[strings.ToUpper(name)] = algorithm
 }
+
+func (jwt *JWT) Issuer() string {
+	return jwt.issuer
+}
