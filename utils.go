@@ -5,6 +5,8 @@ import (
 	"crypto/x509"
 	"encoding/base64"
 	"encoding/pem"
+	"io/ioutil"
+	"os"
 	"strings"
 )
 
@@ -75,4 +77,14 @@ func ParseRSAPublicKeyFromPEM(key []byte) (*rsa.PublicKey, error) {
 	}
 
 	return pkey, nil
+}
+
+// Read bytes from file.
+func ReadBytes(path string) ([]byte, error) {
+	f, err := os.Open(path)
+	if err != nil {
+		return nil, err
+	}
+	defer f.Close()
+	return ioutil.ReadAll(f)
 }
