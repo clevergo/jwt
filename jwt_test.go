@@ -41,19 +41,23 @@ func newJwt() *JWT {
 	// Create a JWT manager.
 	jwt := NewJWT(issuer, ttl)
 
-	// Add RSAAlgorithm.
-	rs256, err := NewRSAAlgorithm(crypto.SHA256, publicKey, privateKey)
-	if err != nil {
-		panic(err)
+	algorithms := map[string]crypto.Hash{
+		"HS256": crypto.SHA256,
+		"HS384": crypto.SHA384,
+		"HS512": crypto.SHA512,
+		"RS256": crypto.SHA256,
+		"RS384": crypto.SHA384,
+		"RS512": crypto.SHA512,
 	}
-	jwt.AddAlgorithm("RS256", rs256)
 
-	// Add HMACAlgorithm.
-	hs256, err := NewHMACAlgorithm(crypto.SHA256, hmacKey)
-	if err != nil {
-		panic(err)
+	// Add RSAAlgorithms.
+	for name, hash := range algorithms {
+		a, err := NewRSAAlgorithm(hash, publicKey, privateKey)
+		if err != nil {
+			panic(err)
+		}
+		jwt.AddAlgorithm(name, a)
 	}
-	jwt.AddAlgorithm("HS256", hs256)
 
 	return jwt
 }
