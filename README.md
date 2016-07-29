@@ -7,6 +7,7 @@ It implemented of [**JSON Web Tokens**](http://self-issued.info/docs/draft-ietf-
 
 # Features
 ### Sign and Verify
+Sign and Verify
 
 ### Algorithms
 - **HS256**
@@ -17,9 +18,9 @@ It implemented of [**JSON Web Tokens**](http://self-issued.info/docs/draft-ietf-
 - **RS512**
 
 ### Supported Check
--iss issuer
--nbf not before
--exp expire time
+- iss issuer
+- nbf not before
+- exp expire time
 
 
 # Installation
