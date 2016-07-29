@@ -1,3 +1,7 @@
+// Copyright 2016 HeadwindFly. All rights reserved.
+// Use of this source code is governed by a BSD-style
+// license that can be found in the LICENSE file.
+
 package jwt
 
 import (
@@ -8,14 +12,14 @@ import (
 )
 
 type Token struct {
-	JWT       *JWT
+	jwt       *JWT
 	algorithm Algorithm
 	Raw       *RawToken // The raw token.
 	Header    *Header   // The first part of the token.
 	Payload   *Payload  // The second part of the token.
 }
 
-func NewToken(jwt *JWT, algorithm string) (*Token, error) {
+func NewToken(jwt *JWT, algorithm, subject, audience string) (*Token, error) {
 	// Check algorithm.
 	alg, support := jwt.algorithms[algorithm]
 	if !support {
@@ -23,17 +27,10 @@ func NewToken(jwt *JWT, algorithm string) (*Token, error) {
 	}
 
 	// Create payload instance.
-	now := time.Now()
-
-	payload := &Payload{
-		Iss:   jwt.issuer,
-		Iat:   now.Unix(),
-		Exp:   now.Unix() + jwt.ttl,
-		Extra: make(map[string]interface{}, 0),
-	}
+	payload := jwt.NewPayload(subject, audience)
 
 	return &Token{
-		JWT:       jwt,
+		jwt:       jwt,
 		algorithm: alg,
 		Raw:       &RawToken{},
 		Header:    NewHeader(algorithm),
@@ -85,7 +82,7 @@ func NewTokenByRaw(jwt *JWT, token string) (*Token, error) {
 	}
 
 	return &Token{
-		JWT:       jwt,
+		jwt:       jwt,
 		Raw:       raw,
 		algorithm: algorithm,
 		Header:    &header,
@@ -122,7 +119,12 @@ func (t *Token) Parse() error {
 }
 
 func (t *Token) Validate() error {
-	if err := t.ValidateExpiration(); err != nil {
+	now := time.Now()
+	if err := t.ValidateExpiration(now); err != nil {
+		return err
+	}
+
+	if err := t.ValidateNotBefore(now); err != nil {
 		return err
 	}
 
@@ -135,8 +137,8 @@ func (t *Token) Validate() error {
 
 func (t *Token) ValidateIssuer() error {
 	// Check issuer if set.
-	if len(t.JWT.issuer) > 0 {
-		if strings.Compare(t.JWT.issuer, t.Payload.Iss) != 0 {
+	if len(t.jwt.issuer) > 0 {
+		if strings.Compare(t.jwt.issuer, t.Payload.Iss) != 0 {
 			return ErrInvalidIssuer
 		}
 	}
@@ -144,9 +146,18 @@ func (t *Token) ValidateIssuer() error {
 	return nil
 }
 
-func (t *Token) ValidateExpiration() error {
-	// Check expiration time.
-	if t.Payload.Exp <= time.Now().Unix() {
+// Check expiration time.
+func (t *Token) ValidateExpiration(now time.Time) error {
+	if t.Payload.Exp <= now.Unix() {
+		return ErrTokenExpired
+	}
+
+	return nil
+}
+
+// Check Not Before
+func (t *Token) ValidateNotBefore(now time.Time) error {
+	if (t.Payload.Nbf > 0) && (t.Payload.Nbf > now.Unix()) {
 		return ErrTokenExpired
 	}
 
@@ -173,4 +184,20 @@ func NewRawToken(token string) (*RawToken, error) {
 		payload:   parts[1],
 		signature: parts[2],
 	}, nil
+}
+
+func (rt *RawToken) Token() string {
+	return rt.token
+}
+
+func (rt *RawToken) Header() string {
+	return rt.header
+}
+
+func (rt *RawToken) Payload() string {
+	return rt.payload
+}
+
+func (rt *RawToken) Signature() string {
+	return rt.signature
 }

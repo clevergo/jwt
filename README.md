@@ -10,4 +10,4 @@ go get github.com/clevergo/jwt
 ```
 
 # Usage
-See also [**jwt_test**](https://github.com/clevergo/jwt/blob/master/jwt_test.go)
+See also [**jwt_test**](jwt_test.go)

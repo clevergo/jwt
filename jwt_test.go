@@ -30,18 +30,16 @@ zTq+Q8/pUWKvWa9jOzkCQD7yioMi2F6gAuPkg77d8/elGOOyBM4R4aj8/svto0wx
 moz8u3wUm4HhD99vpIWzLXB2FCb9Bi2T7KQTCskyHac=
 -----END RSA PRIVATE KEY-----`)
 
-	hmacKey = []byte("I am HMAC key.")
+	hmacKey = []byte("I am HMAC secret key.")
 
-	jwt *JWT
-
-	issuer = "CleverGo"
-
-	ttl = int64(5)
+	ttl = int64(3)
 )
 
-func init() {
-	// Craeta a JWT manager.
-	jwt = NewJWT(issuer, ttl)
+func newJwt() *JWT {
+	issuer := "CleverGo"
+
+	// Create a JWT manager.
+	jwt := NewJWT(issuer, ttl)
 
 	// Add RSAAlgorithm.
 	rs256, err := NewRSAAlgorithm(crypto.SHA256, publicKey, privateKey)
@@ -56,11 +54,15 @@ func init() {
 		panic(err)
 	}
 	jwt.AddAlgorithm("HS256", hs256)
+
+	return jwt
 }
 
 func TestRSA(t *testing.T) {
+	jwt := newJwt()
+
 	// Create a new token using RS256.
-	token1, err := NewToken(jwt, "RS256")
+	token1, err := NewToken(jwt, "RS256", "Subject", "Audience")
 	if err != nil {
 		t.Error(err)
 	}
@@ -89,15 +91,17 @@ func TestRSA(t *testing.T) {
 	// Make sure that the token is expired.
 	time.Sleep(time.Duration(ttl+1) * time.Second)
 
-	err = token2.ValidateExpiration()
+	err = token2.ValidateExpiration(time.Now())
 	if err == nil {
-		t.Error("It is impossible that token is valid.")
+		t.Error("The token show be invalid.")
 	}
 }
 
 func TestHMAC(t *testing.T) {
+	jwt := newJwt()
+
 	// Create a new token using HS256.
-	token, err := NewToken(jwt, "HS256")
+	token, err := NewToken(jwt, "HS256", "Subject", "Audience")
 	if err != nil {
 		t.Error(err)
 	}
@@ -126,8 +130,29 @@ func TestHMAC(t *testing.T) {
 	// Make sure that the token is expired.
 	time.Sleep(time.Duration(ttl+1) * time.Second)
 
-	err = token2.ValidateExpiration()
+	err = token2.ValidateExpiration(time.Now())
 	if err == nil {
 		t.Error("It is impossible that token is valid.")
+	}
+}
+
+func TestNotBefore(t *testing.T) {
+	jwt := newJwt()
+	jwt.SetNotBefore(time.Now().Add(time.Duration(1) * time.Second))
+
+	token, err := NewToken(jwt, "HS256", "Subject", "Audience")
+	if err != nil {
+		t.Error(err)
+	}
+
+	// Check not before.
+	if err := token.ValidateNotBefore(time.Now()); err == nil {
+		t.Errorf("The token nbf should be invalid.")
+	}
+
+	// Make sure that the token is valid.
+	time.Sleep(time.Duration(1) * time.Second)
+	if err := token.ValidateNotBefore(time.Now()); err != nil {
+		t.Errorf("The token nbf should be valid.")
 	}
 }

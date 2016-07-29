@@ -1,17 +1,18 @@
+// Copyright 2016 HeadwindFly. All rights reserved.
+// Use of this source code is governed by a BSD-style
+// license that can be found in the LICENSE file.
+
 package jwt
 
 type Payload struct {
-	Exp       int64                  `json:"exp"`
-	Iss       string                 `json:"iss"`
-	Sub       string                 `json:"sub"`
-	Aud       string                 `json:"aud"`
-	Nbf       int64                  `json:"nbf"`
-	Iat       int64                  `json:"iat"`
-	Jti       string                 `json:"jti"`
-	UserID    int64                  `json:"uid"`
-	UserEmail string                 `json:"email"`
-	UserName  string                 `json:"name"`
-	Extra     map[string]interface{} `json:"extra"`
+	Exp   int64                  `json:"exp"`   // expiration time
+	Iss   string                 `json:"iss"`   // issuer
+	Sub   string                 `json:"sub"`   // subject
+	Aud   string                 `json:"aud"`   // audience
+	Nbf   int64                  `json:"nbf"`   // not before
+	Iat   int64                  `json:"iat"`   // issued at
+	Jti   string                 `json:"jti"`   // jwt id
+	Extra map[string]interface{} `json:"extra"` // extra
 }
 
 func NewPayload() *Payload {

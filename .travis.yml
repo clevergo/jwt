@@ -1,8 +1,12 @@
 language: go
+
 go:
- - 1.5.1
+ - 1.5
  - 1.6
  - tip
+
+install:
+ - go get github.com/headwindfly/uuid
 
 script:
  - go test -v ./...
