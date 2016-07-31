@@ -6,7 +6,7 @@ package jwt
 
 import (
 	"fmt"
-	"github.com/headwindfly/uuid"
+	"github.com/clevergo/uuid"
 	"strings"
 	"time"
 )
