@@ -46,6 +46,10 @@ func (j *JWT) Issuer() string {
 	return j.issuer
 }
 
+func (j *JWT) TTL() int64 {
+	return j.ttl
+}
+
 func (j *JWT) NewToken(algorithm, subject, audience string) (*Token, error) {
 	return NewToken(j, algorithm, subject, audience)
 }
